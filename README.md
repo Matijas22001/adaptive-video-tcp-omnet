@@ -1,0 +1,1 @@
+This is an OMNeT++ and INET Framework project to simulate adaptive video streaming over TCP.
