@@ -6,6 +6,7 @@
 
 Define_Module(TCPAdaptiveVideoClientApp);
 
+
 TCPAdaptiveVideoClientApp::TCPAdaptiveVideoClientApp() {
     timeoutMsg = NULL;
 }
@@ -24,6 +25,7 @@ void TCPAdaptiveVideoClientApp::initialize(int stage) {
     video_packet_size_per_second = cStringTokenizer(str).asIntVector();
     video_buffer_max_length = par("video_buffer_max_length");
     video_duration = par("video_duration");
+    manifest_size = par("manifest_size");
     numRequestsToSend = video_duration;
     WATCH(video_buffer);
     video_buffer = 0;
@@ -61,12 +63,19 @@ void TCPAdaptiveVideoClientApp::sendRequest() {
     long requestLength = par("requestLength");
     if (requestLength < 1) requestLength = 1;
     // Reply length
-    long replyLength = video_packet_size_per_second[video_current_quality_index] / 8 * 1000;  // kbits -> bytes
-    // Log requested quality
-    emit(DASH_quality_level_signal, video_current_quality_index);
+    long replyLength = -1;
+    if (manifestAlreadySent) {
+        replyLength = video_packet_size_per_second[video_current_quality_index] / 8 * 1000;  // kbits -> bytes
+        // Log requested quality
+        emit(DASH_quality_level_signal, video_current_quality_index);
+        numRequestsToSend--;
+    } else {
+        replyLength = manifest_size;
+        EV<< "sending manifest request\n";
+    }
 
     sendPacket(requestLength, replyLength);
-    numRequestsToSend--;
+
 }
 
 void TCPAdaptiveVideoClientApp::handleTimer(cMessage *msg) {
@@ -142,6 +151,16 @@ void TCPAdaptiveVideoClientApp::rescheduleOrDeleteTimer(simtime_t d,
 void TCPAdaptiveVideoClientApp::socketDataArrived(int connId, void *ptr, cPacket *msg,
         bool urgent) {
     TCPGenericCliAppBase::socketDataArrived(connId, ptr, msg, urgent);
+
+    if (!manifestAlreadySent) {
+        manifestAlreadySent = true;
+        if (timeoutMsg) {
+            // Send new request
+            simtime_t d = simTime();
+            rescheduleOrDeleteTimer(d, MSGKIND_SEND);
+        }
+        return;
+    }
 
     video_buffer++;
     emit(DASH_buffer_length_signal, video_buffer);

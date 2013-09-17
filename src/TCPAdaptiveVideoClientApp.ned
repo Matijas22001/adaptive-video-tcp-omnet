@@ -5,7 +5,7 @@ import inet.applications.ITCPApp;
 //
 // Client for adaptive video streaming over TCP. This client requests a server
 // 1s of video with different quality level depending on the buffer ocuppation.
-// May be used as a rough model of DASH.
+// May be used as a rough model of MPEG-DASH.
 //
 // The model communicates with the server in sessions. During a session,
 // the client opens a single TCP connection to the server, sends several
@@ -40,20 +40,21 @@ simple TCPAdaptiveVideoClientApp like ITCPApp
 {
     parameters:
         // General parameters
-        string localAddress = default(""); // may be left empty ("")
-        int localPort = default(-1); // port number to listen on
-        string connectAddress = default("");  // server address (may be symbolic)
-        int connectPort = default(1000); // port number to connect to
-        string dataTransferMode @enum("bytecount","object","bytestream") = default("bytecount");
-        double startTime @unit(s) = default(1s); // time first session begins
-        double stopTime @unit(s) = default(0);  // time of finish sending, 0 means infinity
-        volatile int requestLength @unit(B) = default(200B); // length of a request
+        string 			localAddress = default(""); // may be left empty ("")
+        int 			localPort = default(-1); // port number to listen on
+        string 			connectAddress = default("");  // server address (may be symbolic)
+        int 			connectPort = default(1000); // port number to connect to
+        string 			dataTransferMode @enum("bytecount","object","bytestream") = default("bytecount");
+        double 			startTime @unit(s) = default(1s); // time first session begins
+        double 			stopTime @unit(s) = default(0);  // time of finish sending, 0 means infinity
+        volatile int 	requestLength @unit(B) = default(200B); // length of a request
         volatile double reconnectInterval @unit(s) = default(10s);  // if connection breaks, waits this much before trying to reconnect
         
         // Adaptive Video parameters
-        string video_packet_size_per_second @units(kbps)= default("1000 1500 2000 4000 8000 12000"); // how many kbits are required for 1 second of video for each representation
-        int video_buffer_max_length @units(s) = default(10); // buffer max length in seconds
-        int video_duration @units(s) = default(30); // video length in seconds
+        string 			video_packet_size_per_second @units(kbps)= default("1000 1500 2000 4000 8000 12000"); // how many kbits are required for 1 second of video for each representation (quality levels)
+        int 			manifest_size @units(byte) = default(100000);
+        int 			video_buffer_max_length @units(s) = default(10); // buffer max length in seconds
+        int 			video_duration @units(s) = default(30); // video length in seconds
         
         // General statistics
         @display("i=block/app");

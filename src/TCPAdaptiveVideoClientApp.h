@@ -23,6 +23,8 @@ protected:
     simsignal_t DASH_playback_pointer;
     bool video_is_buffering = true;
     int video_buffer_min_rebuffering = 3; // if video_buffer < video_buffer_min_rebuffering then a rebuffering event occurs
+    int manifest_size;
+    bool manifestAlreadySent = false;
 
 
     cMessage *timeoutMsg;
