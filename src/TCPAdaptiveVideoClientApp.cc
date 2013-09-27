@@ -100,10 +100,10 @@ void TCPAdaptiveVideoClientApp::handleTimer(cMessage *msg) {
             emit(DASH_playback_pointer, video_playback_pointer);
             if (video_buffer == 0) {
                 video_is_playing = false;
-                // Although the video_is_playing flags is set to false now,
-                // the "real" video playback continues for 1 more second (each video fragment = 1s)
-                cTimestampedValue tmp(simTime() + (simtime_t) 1, (long) video_is_playing);
-                emit(DASH_video_is_playing_signal, &tmp);
+
+                //cTimestampedValue tmp(simTime() + (simtime_t) 1, (long) video_is_playing);
+                //emit(DASH_video_is_playing_signal, &tmp);
+                emit(DASH_video_is_playing_signal, video_is_playing);
             }
             if (video_buffer > 0) {
                 simtime_t d = simTime() + 1;
@@ -179,7 +179,7 @@ void TCPAdaptiveVideoClientApp::socketDataArrived(int connId, void *ptr, cPacket
         if (!video_is_playing) {
             video_is_playing = true;
             emit(DASH_video_is_playing_signal, video_is_playing);
-            simtime_t d = simTime();
+            simtime_t d = simTime() + 1;   // the +1 represents the time when the video fragment has been consumed and therefore has to be removed from the buffer.
             cMessage *videoPlaybackMsg = new cMessage("playback");
             videoPlaybackMsg->setKind(MSGKIND_VIDEO_PLAY);
             scheduleAt(d, videoPlaybackMsg);
