@@ -5,6 +5,7 @@ import inet.networklayer.autorouting.ipv4.IPv4NetworkConfigurator;
 import ned.DatarateChannel;
 import inet.nodes.inet.Router;
 import inet.util.NetAnimTrace;
+import inet.world.httptools.HttpController;
 
 network router_scenario
 {
@@ -59,9 +60,13 @@ network router_scenario
             parameters:
                 @display("p=50,150");
         }
-        server: StandardHost {
+        server1: StandardHost {
             parameters:
-                @display("p=400,120;i=device/server");
+                @display("p=400,80;i=device/server");
+        }
+        server2: StandardHost {
+            parameters:
+                @display("p=400,150;i=device/server");
         }
         router1: Router {
             parameters:
@@ -72,14 +77,21 @@ network router_scenario
                 @display("p=300,120");
         }
         configurator: IPv4NetworkConfigurator {
-            @display("p=179,34");
+            parameters:
+                @display("p=179,34");
         }
         netAnimTrace: NetAnimTrace {
-            @display("p=250,34");
+            parameters:
+                @display("p=250,34");
+        }
+        controller: HttpController {
+            parameters:
+                @display("p=320,34;i=block/cogwheel_s");
         }
     connections:
         client1.pppg++ <--> C1 <--> router1.pppg++;
         client2.pppg++ <--> C1 <--> router1.pppg++;
         router1.pppg++ <--> C2 <--> router2.pppg++;
-        router2.pppg++ <--> C3 <--> server.pppg++;
+        router2.pppg++ <--> C3 <--> server1.pppg++;
+        router2.pppg++ <--> C3 <--> server2.pppg++;
 }
