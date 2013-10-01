@@ -28,7 +28,7 @@ network router_scenario
         double C3_per = default(0);
         double C3_ber = default(0);
         
-        @display("bgb=500,200");
+        @display("bgb=500,250");
     types:
         channel C1 extends DatarateChannel
         {
@@ -59,6 +59,10 @@ network router_scenario
         client2: StandardHost {
             parameters:
                 @display("p=50,150");
+        }
+        client3: StandardHost {
+            parameters:
+                @display("p=50,210");
         }
         server1: StandardHost {
             parameters:
@@ -91,6 +95,7 @@ network router_scenario
     connections:
         client1.pppg++ <--> C1 <--> router1.pppg++;
         client2.pppg++ <--> C1 <--> router1.pppg++;
+        client3.pppg++ <--> C1 <--> router1.pppg++;
         router1.pppg++ <--> C2 <--> router2.pppg++;
         router2.pppg++ <--> C3 <--> server1.pppg++;
         router2.pppg++ <--> C3 <--> server2.pppg++;
