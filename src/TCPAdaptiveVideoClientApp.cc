@@ -175,7 +175,7 @@ void TCPAdaptiveVideoClientApp::socketDataArrived(int connId, void *ptr, cPacket
     }
     EV<< "---------------------> Buffer=" << video_buffer << "    min= " << video_buffer_min_rebuffering << "\n";
     // Exit rebuffering state and continue the video playback
-    if (video_buffer > video_buffer_min_rebuffering) {
+    if (video_buffer > video_buffer_min_rebuffering || (numRequestsToSend == 0 && video_playback_pointer < video_duration) ) {
         if (!video_is_playing) {
             video_is_playing = true;
             emit(DASH_video_is_playing_signal, video_is_playing);
