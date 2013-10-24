@@ -25,6 +25,7 @@ protected:
     int video_buffer_min_rebuffering = 3; // if video_buffer < video_buffer_min_rebuffering then a rebuffering event occurs
     int manifest_size;
     bool manifestAlreadySent = false;
+    double video_startTime;
 
 
     cMessage *timeoutMsg;

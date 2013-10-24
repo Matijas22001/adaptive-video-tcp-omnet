@@ -46,14 +46,17 @@ void TCPAdaptiveVideoClientApp::initialize(int stage) {
 
     WATCH(numRequestsToSend);
 
-    simtime_t startTime = par("startTime");
+    //simtime_t startTime = par("startTime");
+    video_startTime = par("video_startTime").doubleValue();
     stopTime = par("stopTime");
-    if (stopTime != 0 && stopTime <= startTime)
+    if (stopTime != 0 && stopTime <= video_startTime)
         error("Invalid startTime/stopTime parameters");
 
     timeoutMsg = new cMessage("timer");
     timeoutMsg->setKind(MSGKIND_CONNECT);
-    scheduleAt(startTime, timeoutMsg);
+    //scheduleAt(startTime, timeoutMsg);
+    EV<< "start time: " << video_startTime << "\n";
+    scheduleAt(simTime()+(simtime_t)video_startTime, timeoutMsg);
 }
 
 void TCPAdaptiveVideoClientApp::sendRequest() {
