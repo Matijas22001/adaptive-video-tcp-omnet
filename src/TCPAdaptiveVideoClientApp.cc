@@ -112,7 +112,7 @@ void TCPAdaptiveVideoClientApp::handleTimer(cMessage *msg) {
                 scheduleAt(d, videoPlaybackMsg);
                 //rescheduleOrDeleteTimer(d, MSGKIND_VIDEO_PLAY);
             }
-            if (!video_is_buffering) {
+            if (!video_is_buffering && numRequestsToSend > 0) {
                 // Now the buffer has some space
                 video_is_buffering = true;
                 simtime_t d = simTime();
