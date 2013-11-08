@@ -42,7 +42,7 @@ void TCPAdaptiveVideoClientApp::initialize(int stage) {
 
     video_is_playing = false;
     DASH_video_is_playing_signal = registerSignal("DASHVideoPlaybackStatus");
-    emit(DASH_video_is_playing_signal, video_is_playing);
+    //emit(DASH_video_is_playing_signal, video_is_playing);
 
     WATCH(numRequestsToSend);
 
@@ -72,6 +72,8 @@ void TCPAdaptiveVideoClientApp::sendRequest() {
         // Log requested quality
         emit(DASH_quality_level_signal, video_current_quality_index);
         numRequestsToSend--;
+        // Switching algoritm
+        tLastPacketRequested = simTime();
     } else {
         replyLength = manifest_size;
         EV<< "sending manifest request\n";
@@ -85,6 +87,7 @@ void TCPAdaptiveVideoClientApp::handleTimer(cMessage *msg) {
     switch (msg->getKind()) {
     case MSGKIND_CONNECT:
         EV<< "starting session\n";
+        emit(DASH_video_is_playing_signal, video_is_playing);
         connect(); // active OPEN
         break;
 
@@ -131,8 +134,6 @@ void TCPAdaptiveVideoClientApp::handleTimer(cMessage *msg) {
 void TCPAdaptiveVideoClientApp::socketEstablished(int connId, void *ptr) {
     TCPGenericCliAppBase::socketEstablished(connId, ptr);
 
-    // TO-DO: Request the manifest file
-
     // perform first request
     sendRequest();
 
@@ -165,14 +166,39 @@ void TCPAdaptiveVideoClientApp::socketDataArrived(int connId, void *ptr, cPacket
         return;
     }
 
+    // Switching algorithm
+    packetTimePointer = (packetTimePointer + 1) % packetTimeArrayLength;
+    packetTime[packetTimePointer] = simTime() - tLastPacketRequested;
+
     video_buffer++;
     emit(DASH_buffer_length_signal, video_buffer);
+    // Update switch timer
+    if(!can_switch) {
+        switch_timer--;
+        if (switch_timer == 0) {
+            can_switch = true;
+            switch_timer = switch_timeout;
+        }
+    }
     // Full buffer
     if (video_buffer == video_buffer_max_length) {
         video_is_buffering = false;
         // switch to higher quality (if possible)
-        int qmax = video_packet_size_per_second.size() -1;
-        video_current_quality_index = std::min(video_current_quality_index + 1, qmax);
+        if (can_switch) {
+            // Switching algorithm
+            simtime_t tSum = 0;
+            for (int i = 0; i < packetTimeArrayLength; i++) {
+                tSum = tSum + packetTime[i];
+            }
+            double estimatedBitRate = (packetTimeArrayLength * video_packet_size_per_second[video_current_quality_index]) / tSum;
+            EV<< "---------------------> Bit rate estimation:\n";
+            EV<< "---------------------> Estimated bit rate = " << estimatedBitRate << "\n";
+            int qmax = video_packet_size_per_second.size() -1;
+            if (estimatedBitRate > video_packet_size_per_second[std::min(video_current_quality_index + 1, qmax)]) {
+                video_current_quality_index = std::min(video_current_quality_index + 1, qmax);
+                can_switch = false;
+            }
+        }
         // the next video fragment will be requested when the buffer gets some space, so nothing to do here.
         return;
     }

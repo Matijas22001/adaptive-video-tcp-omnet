@@ -31,6 +31,16 @@ protected:
     cMessage *timeoutMsg;
     simtime_t stopTime;
 
+    // Flags to avoid multiple quality switches when the buffer is at full capacity
+    bool can_switch = true;
+    int switch_timeout = 5;
+    int switch_timer = switch_timeout;
+    // Enhanced switch algorithm (estimate available bit rate before switching to higher quality level)
+    int packetTimeArrayLength = 5;
+    simtime_t packetTime[5];
+    int packetTimePointer = 0;
+    simtime_t tLastPacketRequested;
+
     /** Utility: sends a request to the server */
     virtual void sendRequest();
 
